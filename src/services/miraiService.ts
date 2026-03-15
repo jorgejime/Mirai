@@ -13,6 +13,14 @@ export class MiraiService {
   }
 
   async processDicomFiles(files: DicomFile[]): Promise<MiraiResult> {
+    // Health check first to give a clear error if backend is down
+    const health = await fetch('/api/mirai/health').catch(() => null);
+    if (!health || !health.ok) {
+      throw new Error(
+        'No se puede conectar al backend. Asegúrate de que uvicorn esté corriendo en el puerto 8000:\n\nuvicorn backend.server:app --port 8000'
+      );
+    }
+
     const formData = new FormData();
     for (const dicomFile of files) {
       formData.append('files', dicomFile.file, dicomFile.file.name);
@@ -21,6 +29,8 @@ export class MiraiService {
     const response = await fetch('/api/mirai/predict', {
       method: 'POST',
       body: formData,
+    }).catch(() => {
+      throw new Error('Conexión rechazada al enviar archivos. Verifica que el backend esté activo en puerto 8000.');
     });
 
     if (!response.ok) {
