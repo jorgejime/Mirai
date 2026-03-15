@@ -65,14 +65,17 @@
   @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
 }
 
-.risk-low {
+.risk-low,
+.risk-success {
   @apply risk-indicator bg-success-100 text-success-800;
 }
 
-.risk-moderate {
+.risk-moderate,
+.risk-warning {
   @apply risk-indicator bg-warning-100 text-warning-800;
 }
 
-.risk-high {
+.risk-high,
+.risk-error {
   @apply risk-indicator bg-error-100 text-error-800;
 }
