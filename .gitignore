@@ -122,3 +122,8 @@ torchenv2/
 # Sample data
 mirai_demo_data.zip
 **/mirai_demo_data
+
+# Node.js
+node_modules/
+package-lock.json
+dist/
