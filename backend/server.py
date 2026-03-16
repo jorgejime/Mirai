@@ -11,6 +11,8 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -19,10 +21,13 @@ app = FastAPI(title="Mirai API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
-    allow_methods=["POST", "GET"],
+    allow_origins=["*"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Resolve the dist directory (frontend build output)
+DIST_DIR = Path(__file__).resolve().parent.parent / "dist"
 
 
 @app.get("/api/mirai/health")
@@ -77,3 +82,16 @@ async def predict(files: list[UploadFile] = File(...)):
         prediction = json.loads(output_path.read_text())
         logger.info("Prediction: %s", prediction)
         return prediction
+
+
+# Serve frontend static assets
+if DIST_DIR.is_dir():
+    app.mount("/assets", StaticFiles(directory=DIST_DIR / "assets"), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        """Serve frontend files; fall back to index.html for SPA routing."""
+        file_path = DIST_DIR / full_path
+        if full_path and file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(DIST_DIR / "index.html")
